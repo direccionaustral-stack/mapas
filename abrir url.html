@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de URLs - Persistente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #a0aec0;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #718096;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .urls-container {
+            margin-top: 20px;
+        }
+
+        .url-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .url-item:hover {
+            background: #edf2f7;
+        }
+
+        .url-number {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .url-content {
+            flex: 1;
+            word-break: break-all;
+            color: #4a5568;
+            margin-right: 10px;
+        }
+
+        .url-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .url-actions button {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .info-text {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .example {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .example p {
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .example code {
+            background: #cbd5e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .urls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .urls-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .persistence-badge {
+            background: #48bb78;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Gestor de URLs Persistente</h1>
+        
+        <div class="input-section">
+            <textarea id="urlInput" placeholder="Ingresa las URLs aquí (una por línea)&#10;Ejemplo:&#10;https://www.google.com&#10;https://www.github.com&#10;https://stackoverflow.com"></textarea>
+            
+            <div class="button-group">
+                <button class="btn-primary" onclick="addUrls()">➕ Agregar URLs</button>
+                <button class="btn-success" onclick="openAllUrls()">🌐 Abrir todas</button>
+                <button class="btn-warning" onclick="saveToCode()">💾 Generar código</button>
+                <button class="btn-danger" onclick="clearAll()">🗑️ Limpiar todo</button>
+            </div>
+        </div>
+
+        <div class="urls-header">
+            <h3>📋 Lista de URLs <span class="persistence-badge">Persistente</span></h3>
+            <span class="urls-count" id="urlCount">0 URLs</span>
+        </div>
+
+        <div class="urls-container" id="urlsContainer">
+            <!-- Las URLs se cargarán aquí desde el array persistente -->
+        </div>
+
+        <div class="example">
+            <p>💡 <strong>Instrucciones:</strong></p>
+            <p>• Las URLs que agregues permanecerán en el código hasta que las borres explícitamente</p>
+            <p>• Usa "Generar código" para obtener el HTML actualizado con las URLs persistentes</p>
+            <p>• Las URLs deben incluir el protocolo (http:// o https://)</p>
+            <p><code>Ejemplo: https://www.ejemplo.com</code></p>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // URLs PERSISTENTES - Modifica este array para agregar URLs fijas
+        // =============================================
+        let urls = [
+            "https://parquenacionallanin.github.io/mapas/areas de caza",
+            "https://parquenacionallanin.github.io/mapas/catastro",
+           
+        ];
+        // =============================================
+
+        // Función para actualizar el contador
+        function updateCount() {
+            const countElement = document.getElementById('urlCount');
+            if (countElement) {
+                countElement.textContent = `${urls.length} URL${urls.length !== 1 ? 's' : ''}`;
+            }
+        }
+
+        function addUrls() {
+            const input = document.getElementById('urlInput');
+            const newUrls = input.value.split('\n')
+                .map(url => url.trim())
+                .filter(url => url !== '');
+
+            if (newUrls.length > 0) {
+                // Validar URLs
+                const validUrls = newUrls.filter(url => {
+                    try {
+                        new URL(url);
+                        return true;
+                    } catch {
+                        alert(`URL inválida: ${url}. Debe incluir el protocolo (http:// o https://)`);
+                        return false;
+                    }
+                });
+
+                if (validUrls.length > 0) {
+                    urls = [...urls, ...validUrls];
+                    renderUrls();
+                    input.value = '';
+                    updateCount();
+                }
+            }
+        }
+
+        function renderUrls() {
+            const container = document.getElementById('urlsContainer');
+            
+            if (urls.length === 0) {
+                container.innerHTML = '<p class="info-text">No hay URLs en la lista persistente</p>';
+                return;
+            }
+
+            let html = '';
+            urls.forEach((url, index) => {
+                html += `
+                    <div class="url-item">
+                        <div class="url-number">${index + 1}</div>
+                        <div class="url-content">${url}</div>
+                        <div class="url-actions">
+                            <button class="btn-success" onclick="openUrl(${index})" title="Abrir URL">🌐</button>
+                            <button class="btn-danger" onclick="removeUrl(${index})" title="Eliminar URL">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            updateCount();
+        }
+
+        function openUrl(index) {
+            window.open(urls[index], '_blank');
+        }
+
+        function openAllUrls() {
+            if (urls.length === 0) {
+                alert('No hay URLs para abrir');
+                return;
+            }
+
+            if (urls.length > 5) {
+                if (!confirm(`¿Estás seguro de que quieres abrir ${urls.length} ventanas?`)) {
+                    return;
+                }
+            }
+
+            urls.forEach(url => {
+                window.open(url, '_blank');
+            });
+        }
+
+        function removeUrl(index) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta URL permanentemente?')) {
+                urls.splice(index, 1);
+                renderUrls();
+            }
+        }
+
+        function clearAll() {
+            if (urls.length > 0 && confirm('¿Estás seguro de que quieres eliminar TODAS las URLs permanentemente?')) {
+                urls = [];
+                renderUrls();
+            }
+        }
+
+        function saveToCode() {
+            // Generar el código actualizado con las URLs persistentes
+            const urlsString = urls.map(url => `            "${url}"`).join(',\n');
+            
+            const newCode = `        // =============================================
+        // URLs PERSISTENTES - Modifica este array para agregar URLs fijas
+        // =============================================
+        let urls = [
+${urlsString}
+        ];
+        // =============================================`;
+
+            // Crear un elemento textarea para copiar el código
+            const textarea = document.createElement('textarea');
+            textarea.value = newCode;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            alert('✅ Código generado y copiado al portapapeles!\n\nReemplaza la sección de URLs en el HTML con este nuevo código para hacer persistentes los cambios.');
+            
+            // Mostrar el código en consola también
+            console.log('=== CÓDIGO GENERADO PARA URLs PERSISTENTES ===');
+            console.log(newCode);
+            console.log('==============================================');
+        }
+
+        // Permitir agregar URLs con Ctrl+Enter
+        document.getElementById('urlInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                addUrls();
+            }
+        });
+
+        // Renderizar URLs al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            renderUrls();
+        });
+    </script>
+</body>
+</html>
